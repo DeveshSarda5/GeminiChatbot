@@ -181,6 +181,23 @@ button {
   padding: 14px 22px;
   min-width: 110px;
   box-shadow: 0 12px 24px rgba(168, 85, 247, 0.3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.new-chat-btn {
+  width: 100%;
+  margin-top: 20px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  border-radius: 20px;
+  padding: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.new-chat-btn:hover {
+  box-shadow: 0 14px 28px rgba(168, 85, 247, 0.4);
 }
 
 .session-grid,
@@ -453,8 +470,9 @@ button {
 .composer-textarea-wrapper {
   display: flex;
   gap: 8px;
-  align-items: flex-end;
+  align-items: center;
   flex: 1;
+  background: transparent;
 }
 
 .composer-buttons {

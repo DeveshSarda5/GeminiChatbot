@@ -147,16 +147,10 @@ export default function App() {
         formData.append("file", file);
       }
 
-      const response = await fetch(`${API_BASE_URL}/message`, {
-        method: "POST",
-        body: formData,
+      const data = await sendToGemini(formData, (attempt, max, delay) => {
+        setStatusText(`Gemini is busy. Retrying (${attempt}/${max}) in ${delay / 1000}s...`);
       });
 
-      if (!response.ok) {
-        throw new Error(await parseError(response));
-      }
-
-      const data = await response.json();
       const assistantText = data.response || "I could not generate a response.";
 
       setMessages((current) => [
@@ -280,23 +274,34 @@ export default function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand-card">
-          <p className="eyebrow">Gemini 2.5 Flash</p>
-          <h1>Chatbot Workspace</h1>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <p className="eyebrow">Gemini 2.5 Flash</p>
+              <h1>Chatbot</h1>
+            </div>
+            <button
+              type="button"
+              className="icon-button theme-toggle-btn"
+              onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
+              title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {theme === "dark" ? "☀️" : "🌙"}
+            </button>
+          </div>
           <p className="muted">
             Ask questions, attach notes, and inspect images in one running chat context.
           </p>
+          <button type="button" className="primary-button new-chat-btn" onClick={handleNewChat} disabled={isSending}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 8 }}>
+              <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            New Chat
+          </button>
         </div>
 
         <div className="panel">
           <div className="panel-header">
             <h2>Session</h2>
-            <button
-              type="button"
-              className="theme-toggle"
-              onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
-            >
-              {theme === "dark" ? "Light mode" : "Dark mode"}
-            </button>
           </div>
 
           <div className="session-grid">
@@ -313,31 +318,11 @@ export default function App() {
               <strong>{selectedImage ? "Loaded" : "None"}</strong>
             </div>
           </div>
-
-          <button type="button" className="secondary-button" onClick={handleNewChat} disabled={isSending}>
-            New Chat
-          </button>
         </div>
 
         <div className="panel">
           <h2>Context</h2>
-          <div className="upload-stack">
-            <button
-              type="button"
-              className="upload-button"
-              onClick={() => documentInputRef.current?.click()}
-              disabled={isSending}
-            >
-              Upload Document
-            </button>
-            <button
-              type="button"
-              className="upload-button"
-              onClick={() => imageInputRef.current?.click()}
-              disabled={isSending}
-            >
-              Upload Image
-            </button>
+          <div className="upload-stack" style={{ display: "none" }}>
             <input
               ref={documentInputRef}
               type="file"
@@ -376,7 +361,29 @@ export default function App() {
               Attach a file, add your question, and send both together.
             </p>
           </div>
-          <div className="status-pill">{isSending ? statusText : "Live"}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div className="status-pill">{isSending ? statusText : "Live"}</div>
+            <button
+              type="button"
+              className="icon-button theme-toggle-btn"
+              onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
+              title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            >
+              {theme === "dark" ? "☀️" : "🌙"}
+            </button>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={handleNewChat}
+              disabled={isSending}
+              style={{ padding: "10px 16px", minWidth: "auto", borderRadius: "16px", fontSize: "0.9rem" }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ marginRight: 6 }}>
+                <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              New Chat
+            </button>
+          </div>
         </header>
 
         <section className="messages">
@@ -445,20 +452,48 @@ export default function App() {
           ) : null}
 
           <form className="composer" onSubmit={handleSubmit}>
-            <textarea
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-              placeholder={
-                draftFile
-                  ? "Add your question for this attachment."
-                  : "Message Gemini"
-              }
-              rows={1}
-              disabled={isSending}
-            />
-            <button type="submit" className="primary-button" disabled={!canSend}>
-              {draftFile ? "Send with file" : "Send"}
-            </button>
+            <div className="composer-textarea-wrapper">
+              <button
+                type="button"
+                className="icon-button"
+                onClick={() => documentInputRef.current?.click()}
+                disabled={isSending}
+                title="Attach Document"
+                aria-label="Attach Document"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 2H6C4.9 2 4.01 2.9 4.01 4L4 20C4 21.1 4.89 22 5.99 22H18C19.1 22 20 21.1 20 20V8L14 2ZM18 20H6V4H13V9H18V20Z" fill="currentColor"/>
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="icon-button"
+                onClick={() => imageInputRef.current?.click()}
+                disabled={isSending}
+                title="Attach Image"
+                aria-label="Attach Image"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 19V5C21 3.9 20.1 3 19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19ZM8.5 13.5L11 16.5L14.5 12L19 18H5L8.5 13.5Z" fill="currentColor"/>
+                </svg>
+              </button>
+              <textarea
+                value={message}
+                onChange={(event) => setMessage(event.target.value)}
+                placeholder={
+                  draftFile
+                    ? "Add your question for this attachment."
+                    : "Message Gemini"
+                }
+                rows={1}
+                disabled={isSending}
+              />
+            </div>
+            <div className="composer-buttons">
+              <button type="submit" className="primary-button" disabled={!canSend}>
+                {draftFile ? "Send with file" : "Send"}
+              </button>
+            </div>
           </form>
 
           <div className="composer-footer">

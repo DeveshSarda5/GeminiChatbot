@@ -5,12 +5,13 @@ A full-stack Gemini chatbot application with a modern, clean interface inspired 
 ## Features
 
 - Interactive text chat with conversation history
-- PDF and TXT document upload and analysis
-- PNG and JPG image upload with vision capabilities
+- PDF and TXT document upload and analysis directly from the chat input
+- PNG and JPG image upload and vision capabilities with buttons right in the composer, similar to Gemini/ChatGPT
 - Real-time image preview
-- Light and dark mode with lavender color scheme
+- Light and dark mode with an intuitive theme switch button and elegant lavender color scheme
 - Context-aware chat sessions
-- Session management with new chat reset
+- A prominent "New Chat" button to quickly reset sessions and clear previous context
+- Interactive UI elements with dynamic hover effects
 - Responsive, modern interface inspired by Gemini/ChatGPT
 - In-memory state management
 
@@ -111,11 +112,11 @@ The frontend will be available at `http://localhost:5173` and the backend at `ht
 ## Usage Guide
 
 1. **Start a chat**: Open the application and begin typing messages
-2. **Upload documents**: Click "Upload Document" to analyze PDF or TXT files
-3. **Upload images**: Click "Attach Image" to analyze PNG or JPG images
+2. **Upload documents**: Click the document icon in the chat input to analyze PDF or TXT files
+3. **Upload images**: Click the image icon in the chat input to analyze PNG or JPG images
 4. **Preview**: View uploaded images before sending
-5. **Switch themes**: Toggle between dark (lavender) and light (light lavender) modes
-6. **Start fresh**: Click "New Chat" to begin a new conversation
+5. **Switch themes**: Toggle between light and dark modes using the sun/moon theme switch button
+6. **Start fresh**: Click the prominent "New Chat" button to begin a new conversation and clear the previous context
 
 ## API Reference
 
