@@ -4,6 +4,8 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000
 const FILE_READY_PROMPT =
   "A file was uploaded. Briefly confirm it is ready and mention what I can ask about it.";
 const THEME_KEY = "gemini-chat-theme";
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
 
 function createChatId() {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -36,6 +38,40 @@ async function parseError(response) {
   } catch (_) {
     return "Request failed.";
   }
+}
+
+async function sendToGemini(formData, onRetry) {
+  let lastError;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/message`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await parseError(response);
+        if (response.status === 503 && attempt < MAX_RETRIES - 1) {
+          lastError = error;
+          const delay = RETRY_DELAY * (attempt + 1);
+          onRetry?.(attempt + 1, MAX_RETRIES, delay);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          continue;
+        }
+        throw new Error(error);
+      }
+
+      return await response.json();
+    } catch (err) {
+      lastError = err;
+      if (attempt === MAX_RETRIES - 1) {
+        throw err;
+      }
+    }
+  }
+
+  throw lastError || new Error("Request failed after retries");
 }
 
 export default function App() {
